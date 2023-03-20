@@ -1,19 +1,19 @@
-import chai = require('chai')
-import chaiHttp = require('chai-http')
-import * as express from "express"
+import chai from "chai"
+import chaiHttp from "chai-http"
+import express from "express"
 
-import { helloWorld } from '../src/index'
+import { helloHttp } from '../src/index'
 
 const app = express()
-app.get('/', helloWorld)
+app.get('/helloHttp', helloHttp)
 
 chai.use(chaiHttp)
 const expect = chai.expect
 
-describe('Hello function', () => {
-    it('Get 200 response', function (done) {
+describe('helloHttp', () => {
+    it('should give 200 with text "Hello World"', function (done) {
         chai.request(app)
-            .get('/')
+            .get('/helloHttp')
             .end((err, res) => {
                 expect(err).to.be.null
                 expect(res.text).to.be.equal('Hello World')
