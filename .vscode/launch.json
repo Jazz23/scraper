@@ -23,6 +23,27 @@
                 "<node_internals>/**"
             ],
             "type": "node"
+        },
+        {
+            "args": [
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/test/*.ts",
+                "-r",
+                "ts-node/register",
+                "--grep",
+                "${fileBasenameNoExtension}"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "name": "Mocha Current File Test",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/**/*.js"
+            ],
+            "type": "node"
         }
     ]
 }
