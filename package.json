@@ -1,7 +1,13 @@
 {
+  "config": {
+    "functionName": "helloHttp",
+    "gcpProject": "uptown-funk",
+    "runtime": "nodejs18"
+  },
   "scripts": {
-    "test:debug": "node --inspect-brk ./node_modules/.bin/mocha --exit ./test/test.js",
-    "test": "mocha"
+    "test": "mocha",
+    "build": "tsc --outDir bin",
+    "deploy": "npm run build && gcloud functions deploy $npm_package_config_functionName --runtime $npm_package_config_runtime --trigger-http --project $npm_package_config_gcpProject --source=bin/src --entry-point=$npm_package_config_functionName"
   },
   "devDependencies": {
     "@types/chai": "^4.3.4",
@@ -19,10 +25,6 @@
   },
   "name": "gcloud-functions-ts",
   "version": "1.0.0",
-  "main": "index.js",
-  "bin": {
-    "gcloud-functions-ts": "bin/index.js"
-  },
   "directories": {
     "test": "test"
   },

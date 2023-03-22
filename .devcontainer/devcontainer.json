@@ -12,7 +12,9 @@
 		"vscode": {
 			"extensions": [
 				"hbenl.vscode-test-explorer",
-				"hbenl.vscode-mocha-test-adapter"
+				"hbenl.vscode-mocha-test-adapter",
+				"GitHub.copilot-nightly",
+				"GitHub.copilot-labs"
 			]
 		}
 	}
