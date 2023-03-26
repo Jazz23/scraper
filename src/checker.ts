@@ -1,15 +1,25 @@
 import { HttpFunction } from '@google-cloud/functions-framework';
 import { Request, Response } from '@google-cloud/functions-framework';
 import { Config, defaultUserAgent } from './config';
+import { getDOM, grabText } from './utils';
 
 
-export const helloHttp: HttpFunction = async (req: Request, res: Response) => {
+export const checker: HttpFunction = async (req: Request, res: Response) => {
+  if (req.method == 'GET') {
+    if (!req.query.url) {
+      res.status(400).send('url is required');
+      return;
+    }
+    res.send(await grabText({ url: req.query.url as string, userAgent: (req.query.userAgent || defaultUserAgent) as string }));
+    return;
+  }
+  
   const validation = Config.validate(req.body);
   if (validation.error) {
     res.status(400).send(validation.error.details[0].message);
     return;
   }
-
+  
   const config: Config = req.body;
   if (await performCheck(config)) {
     if (config.webhook) sendWebhook(config);
@@ -21,7 +31,13 @@ export const helloHttp: HttpFunction = async (req: Request, res: Response) => {
 };
 
 function sendWebhook(config: Config) {
-  // TODO
+  if (!config.webhook) throw new Error('Webhook is required');
+  const options = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config.webhook.payload)
+  };
+  fetch(config.webhook.url, options);
 }
 
 async function performCheck(config: Config): Promise<boolean> {
@@ -38,7 +54,7 @@ async function performCheck(config: Config): Promise<boolean> {
 
 async function querySelector(config: Config): Promise<boolean> {
   if (!config.cssQuerySelector) throw new Error('cssQuerySelector is required');
-  const doc: Document = await getDocument(config.url, config.userAgent);
+  const doc: Document =  (await getDOM(config.url, config.userAgent)).window.document; // TODO: Change to puppeteer
   const el: Element | null = doc.querySelector(config.cssQuerySelector);
   if (!el) return false;
   if (config.matchedText && !(el.textContent && el.textContent.includes(config.matchedText)))
@@ -47,22 +63,17 @@ async function querySelector(config: Config): Promise<boolean> {
 }
 
 async function regexMatch(config: Config): Promise<boolean> {
-  throw new Error('Function not implemented.');
+  if (!config.regexPattern) throw new Error('regexPattern is required');
+  const text = await grabText(config);
+  const regex = new RegExp(config.regexPattern);
+  if (!regex.test(text)) return false;
+  if (config.matchedText && regex.exec(text)?.[0] != (config.matchedText))
+    return false; // We're supposed to match certain text but we found something else
+  return true; 
 }
-
 
 async function plainText(config: Config): Promise<boolean> {
-  throw new Error('Function not implemented.');
-}
-
-async function getDocument(url: string, userAgent: string): Promise<Document> {
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': userAgent,
-    },
-  });
-  const html = await response.text();
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-  return doc;
+  if (!config.plainText) throw new Error('plainText is required');
+  const text = await grabText(config);
+  return text.includes(config.plainText);
 }

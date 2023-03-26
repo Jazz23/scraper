@@ -4,20 +4,32 @@ export const defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Apple
 
 export const Config = Joi.object({
   url: Joi.string().uri().required(),
-  webhook: Joi.array().items(Joi.string().uri(), Joi.object()).min(2).max(2),
+  webhook: Joi.object({
+    url: Joi.string().uri().required(),
+    payload: Joi.object().required()
+  }),
   userAgent: Joi.string(),
   matchedText: Joi.string(),
   regexPattern: Joi.string(),
   cssQuerySelector: Joi.string(),
   plainText: Joi.string(),
-}).xor('regexPattern', 'cssQuerySelector', 'plainText').required();
+  onlyVisibleText: Joi.bool()
+})
+.xor('regexPattern', 'cssQuerySelector', 'plainText')
+.oxor('plainText', 'matchedText')
+.oxor('onlyVisibleText', 'cssQuerySelector')
+.required();
 
 export type Config = {
   url: string;
   userAgent: string;
-  webhook?: [string, object];
+  webhook?: {
+    url: string;
+    payload: object;
+  }
   matchedText?: string;
   regexPattern?: string;
   cssQuerySelector?: string;
   plainText?: string;
+  onlyVisibleText?: boolean;
 }
