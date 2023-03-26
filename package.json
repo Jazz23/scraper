@@ -7,7 +7,7 @@
   "scripts": {
     "test": "mocha",
     "build": "tsc --outDir bin",
-    "deploy": "npm run build && gcloud functions deploy $npm_package_config_functionName --runtime $npm_package_config_runtime --trigger-http --project $npm_package_config_gcpProject --source=bin/src --entry-point=$npm_package_config_functionName"
+    "deploy": "npm run build && cp package.json bin/src/package.json && cp package-lock.json bin/src/package-lock.json && gcloud functions deploy $npm_package_config_functionName --runtime $npm_package_config_runtime --trigger-http --project $npm_package_config_gcpProject --source=bin/src --entry-point=$npm_package_config_functionName"
   },
   "devDependencies": {
     "@types/chai": "^4.3.4",
@@ -22,6 +22,7 @@
   "dependencies": {
     "@google-cloud/functions-framework": "^3.1.3",
     "@types/jsdom": "^21.1.1",
+    "axios": "^1.3.4",
     "express": "^4.18.2",
     "joi": "^17.9.1",
     "jsdom": "^21.1.1"

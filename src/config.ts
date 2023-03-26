@@ -15,9 +15,9 @@ export const Config = Joi.object({
   plainText: Joi.string(),
   onlyVisibleText: Joi.bool()
 })
-.xor('regexPattern', 'cssQuerySelector', 'plainText')
-.oxor('plainText', 'matchedText')
-.oxor('onlyVisibleText', 'cssQuerySelector')
+.xor('regexPattern', 'cssQuerySelector', 'plainText') // Need one and only one match type
+.oxor('plainText', 'matchedText') // Plain text doesn't care about matched text
+.oxor('onlyVisibleText', 'cssQuerySelector') // Query selector doesn't care about visibility
 .required();
 
 export type Config = {

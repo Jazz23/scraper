@@ -14,6 +14,13 @@ app.get('/checker', checker)
 chai.use(chaiHttp)
 const expect = chai.expect
 
+describe('run', () => {
+    it('run server', function (done) {
+        this.timeout(-1)
+        app.listen(8080);
+    })
+})
+
 describe('checker', () => {
     it('query selector 200', function (done) {
         const config = {

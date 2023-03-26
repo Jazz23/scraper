@@ -1,33 +1,38 @@
 import { HttpFunction } from '@google-cloud/functions-framework';
 import { Request, Response } from '@google-cloud/functions-framework';
 import { Config, defaultUserAgent } from './config';
-import { getDOM, grabText } from './utils';
+import { divideString, getDOM, grabText } from './utils';
+import { JSDOM } from 'jsdom';
 
 
 export const checker: HttpFunction = async (req: Request, res: Response) => {
-  if (req.method == 'GET') {
-    if (!req.query.url) {
-      res.status(400).send('url is required');
+  try{
+    if (req.method == 'GET') {
+      if (!req.query.url) {
+        res.status(400).send('url is required');
+        return;
+      }
+      res.send(await grabText({ url: divideString(req.originalUrl, 'url='), userAgent: (req.query.userAgent || defaultUserAgent) as string }));
       return;
     }
-    res.send(await grabText({ url: req.query.url as string, userAgent: (req.query.userAgent || defaultUserAgent) as string }));
-    return;
-  }
+    
+    const validation = Config.validate(req.body);
+    if (validation.error) {
+      res.status(400).send(validation.error.details[0].message);
+      return;
+    }
+    
+    const config: Config = req.body;
+    if (await performCheck(config)) {
+      if (config.webhook) sendWebhook(config);
+      res.send('Match found! Webhook sent.');
+      return;
+    }
   
-  const validation = Config.validate(req.body);
-  if (validation.error) {
-    res.status(400).send(validation.error.details[0].message);
-    return;
+    res.status(404).send('No match found.');
+  } catch (error) {
+    res.status(500).send(error);
   }
-  
-  const config: Config = req.body;
-  if (await performCheck(config)) {
-    if (config.webhook) sendWebhook(config);
-    res.send('Match found! Webhook sent.');
-    return;
-  }
-
-  res.status(404).send('No match found.');
 };
 
 function sendWebhook(config: Config) {
@@ -54,7 +59,7 @@ async function performCheck(config: Config): Promise<boolean> {
 
 async function querySelector(config: Config): Promise<boolean> {
   if (!config.cssQuerySelector) throw new Error('cssQuerySelector is required');
-  const doc: Document =  (await getDOM(config.url, config.userAgent)).window.document; // TODO: Change to puppeteer
+  const doc: Document = (new JSDOM(await grabText(config))).window.document;
   const el: Element | null = doc.querySelector(config.cssQuerySelector);
   if (!el) return false;
   if (config.matchedText && !(el.textContent && el.textContent.includes(config.matchedText)))
