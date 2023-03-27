@@ -37,25 +37,18 @@ export async function getDOM(url: string, userAgent: string): Promise<JSDOM> {
 
 export async function grabText(config: Config): Promise<string> {
   const result = await fetchPage(config);
-  if (result == undefined)
-    throw new Error('Failed to fetch page');
   if (config.onlyVisibleText)
     return getVisibleText(result);
   return result;
 }
 
 
-async function fetchPage(config: Config): Promise<string | undefined> {
-  try {
-      return (await axios.create().get(config.url, {
-          headers: {
-              'User-Agent': config.userAgent,
-          },
-      })).data;
-  } catch (error) {
-      console.error(error);
-      return undefined;
-  }
+async function fetchPage(config: Config): Promise<string> {
+  return (await axios.create().get(config.url, {
+      headers: {
+          'User-Agent': config.userAgent,
+      },
+  })).data;
 }
 
 export function divideString(str: string, delimeter: string): string {

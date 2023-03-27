@@ -1,12 +1,11 @@
 import { HttpFunction } from '@google-cloud/functions-framework';
 import { Request, Response } from '@google-cloud/functions-framework';
 import { Config, defaultUserAgent } from './config';
-import { divideString, getDOM, grabText } from './utils';
+import { divideString, grabText } from './utils';
 import { JSDOM } from 'jsdom';
 
-
 export const checker: HttpFunction = async (req: Request, res: Response) => {
-  try{
+  try {
     if (req.method == 'GET') {
       if (!req.query.url) {
         res.status(400).send('url is required');
@@ -23,9 +22,9 @@ export const checker: HttpFunction = async (req: Request, res: Response) => {
     }
     
     const config: Config = req.body;
-    if (await performCheck(config)) {
+    if ((await performCheck(config)) !== (config.negativeMatch || false)) {
       if (config.webhook) sendWebhook(config);
-      res.send('Match found! Webhook sent.');
+      res.send(`Match found!${config.webhook ? ' Webhook sent.' : ''}`);
       return;
     }
   

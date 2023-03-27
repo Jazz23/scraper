@@ -6,6 +6,11 @@ import * as fs from 'fs';
 
 import { checker } from '../src/index'
 
+const testUrl = 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8';
+const ucscUrl = 'https://pisa.ucsc.edu/class_search/index.php?action=detail&class_data=YToyOntzOjU6IjpTVFJNIjtzOjQ6IjIyMzIiO3M6MTA6IjpDTEFTU19OQlIiO3M6NToiNTEyMDkiO30%253D';
+const amazonUrl = 'https://www.amazon.com/NOCO-GB40-UltraSafe-Lithium-Starter/dp/B015TKUPIC';
+const amzPriceSelector = '#corePriceDisplay_desktop_feature_div > div.a-section.a-spacing-none.aok-align-center > span.a-price.aok-align-center.reinventPricePriceToPayMargin.priceToPay > span.a-offscreen';
+
 const app = express()
 app.use(bodyParser.json());
 app.post('/checker', checker)
@@ -24,7 +29,7 @@ describe('run', () => {
 describe('checker', () => {
     it('query selector 200', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             cssQuerySelector: '#rso > div:nth-child(5) > div > div > div.Z26q7c.UK95Uc.jGGQ5e > div > a > h3'
         }
         chai.request(app)
@@ -32,14 +37,14 @@ describe('checker', () => {
             .send(config)
             .end((err, res) => {
                 expect(err).to.be.null
-                expect(res.text).to.be.equal('Match found! Webhook sent.')
+                expect(res.text).to.be.equal('Match found!')
                 expect(res).to.have.status(200)
                 done()
             })
     }),
     it('plain text 200', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             plainText: 'Test.com: Home'
         }
         chai.request(app)
@@ -47,14 +52,14 @@ describe('checker', () => {
             .send(config)
             .end((err, res) => {
                 expect(err).to.be.null
-                expect(res.text).to.be.equal('Match found! Webhook sent.')
+                expect(res.text).to.be.equal('Match found!')
                 expect(res).to.have.status(200)
                 done()
             })
     }),
     it('plain text 200 only visible', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             plainText: 'Test.com: Home',
             onlyVisibleText: true
         }
@@ -63,14 +68,14 @@ describe('checker', () => {
             .send(config)
             .end((err, res) => {
                 expect(err).to.be.null
-                expect(res.text).to.be.equal('Match found! Webhook sent.')
+                expect(res.text).to.be.equal('Match found!')
                 expect(res).to.have.status(200)
                 done()
             })
     }),
     it('regex test 200', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             regexPattern: 'Test\\.com.{6}</h3>'
         }
         chai.request(app)
@@ -78,14 +83,14 @@ describe('checker', () => {
             .send(config)
             .end((err, res) => {
                 expect(err).to.be.null
-                expect(res.text).to.be.equal('Match found! Webhook sent.')
+                expect(res.text).to.be.equal('Match found!')
                 expect(res).to.have.status(200)
                 done()
             })
     }),
     it('regex test 404 only visible', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             regexPattern: 'Test\\.com.{6}</h3>',
             onlyVisibleText: true
         }
@@ -99,8 +104,8 @@ describe('checker', () => {
     }),
     it('query selector with text match 200', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
-            cssQuerySelector: '#rso > div:nth-child(5) > div > div > div.Z26q7c.UK95Uc.jGGQ5e > div > a > h3',
+            url: testUrl,
+            cssQuerySelector: '#rso > div:nth-child(4) > div > div > div.Z26q7c.UK95Uc.jGGQ5e > div > a > h3',
             matchedText: 'Test.com: Home'
         }
         chai.request(app)
@@ -113,7 +118,7 @@ describe('checker', () => {
     }),
     it('regex test with text 200', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             regexPattern: 'Test\\.com.{6}</h3>',
             matchedText: 'Test.com: Home</h3>'
         }
@@ -127,7 +132,7 @@ describe('checker', () => {
     }),
     it('query selector with text match 404', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             cssQuerySelector: '#rso > div:nth-child(4) > div > div > div.Z26q7c.UK95Uc.jGGQ5e > div > a > h3',
             matchedText: 'ooggie boogie'
         }
@@ -141,7 +146,7 @@ describe('checker', () => {
     }),
     it('plain text 404', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             plainText: 'ooggie boogie'
         }
         chai.request(app)
@@ -155,7 +160,7 @@ describe('checker', () => {
     }),
     it('regex test 404', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             regexPattern: 'bruh\\.com.{6}</h3>'
         }
         chai.request(app)
@@ -169,7 +174,7 @@ describe('checker', () => {
     }),
     it('regex test 404 with bad matched text', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             regexPattern: 'Test\\.com.{6}</h3>',
             matchedText: 'bruh.com: Home</h3>'
         }
@@ -184,7 +189,7 @@ describe('checker', () => {
     }),
     it('plain text 404 because only visible', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             plainText: '</head>',
             onlyVisibleText: true
         }
@@ -199,7 +204,7 @@ describe('checker', () => {
     }),
     it('plain text 200 because not only visible', function (done) {
         const config = {
-            url: 'https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8',
+            url: testUrl,
             plainText: '</head>'
         }
         chai.request(app)
@@ -283,10 +288,11 @@ describe('checker', () => {
                 done()
             })
     }),
-    it('waitlist', function (done) {
+    it('negative 200 (supposed to be 404)', function (done) {
         const badConfig = {
-            url: 'https://pisa.ucsc.edu/class_search/index.php?action=detail&class_data=YToyOntzOjU6IjpTVFJNIjtzOjQ6IjIyMzIiO3M6MTA6IjpDTEFTU19OQlIiO3M6NToiNTEyMDkiO30%253D',
-            plainText: 'Closed with Wait List'
+            url: ucscUrl,
+            plainText: 'booty cheeks',
+            negativeMatch: true
         }
         chai.request(app)
             .post('/checker')
@@ -297,10 +303,11 @@ describe('checker', () => {
                 done()
             })
     }),
-    it('waitlist 404', function (done) {
+    it('negative match 404 (supposed to be 200)', function (done) {
         const badConfig = {
-            url: 'https://pisa.ucsc.edu/class_search/index.php?action=detail&class_data=YToyOntzOjU6IjpTVFJNIjtzOjQ6IjIyMzIiO3M6MTA6IjpDTEFTU19OQlIiO3M6NToiNTAxMDYiO30%253D',
-            plainText: 'Closed with Wait List'
+            url: ucscUrl,
+            plainText: 'Closed with Wait List',
+            negativeMatch: true
         }
         chai.request(app)
             .post('/checker')
@@ -317,6 +324,20 @@ describe('checker', () => {
             .query('url=https://www.google.com/search?q=test&oq=test&aqs=chrome..69i57j69i59l2j69i60l2j69i61j69i65l2.376j0j7&sourceid=chrome&ie=UTF-8')
             .end((err, res) => {
                 fs.writeFileSync('test.html', res.text)
+                done()
+            })
+    }),
+    it('Numeric >=101.39 200 (exact)', function (done) {
+        const config = {
+            url: amazonUrl,
+            cssQuerySelector: amzPriceSelector,
+        }
+        chai.request(app)
+            .post('/checker')
+            .send(config)
+            .end((err, res) => {
+                expect(res).to.have.status(200)
+                console.log(res.text)
                 done()
             })
     })
