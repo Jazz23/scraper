@@ -1,7 +1,7 @@
 import { HttpFunction } from '@google-cloud/functions-framework';
 import { Request, Response } from '@google-cloud/functions-framework';
 import { Config, defaultUserAgent } from './config';
-import { divideString, grabText } from './utils';
+import { divideString, execInequality, grabText } from './utils';
 import { JSDOM } from 'jsdom';
 
 export const checker: HttpFunction = async (req: Request, res: Response) => {
@@ -60,9 +60,15 @@ async function querySelector(config: Config): Promise<boolean> {
   if (!config.cssQuerySelector) throw new Error('cssQuerySelector is required');
   const doc: Document = (new JSDOM(await grabText(config))).window.document;
   const el: Element | null = doc.querySelector(config.cssQuerySelector);
-  if (!el) return false;
+
+  if (!el) return false; // El not found
+
   if (config.matchedText && !(el.textContent && el.textContent.includes(config.matchedText)))
-    return false;
+    return false; // El text doesn't match target text
+
+  if (config.numericInequality)
+    return execInequality(config, el.textContent); // El fails inequality check
+    
   return true;
 }
 
@@ -70,9 +76,16 @@ async function regexMatch(config: Config): Promise<boolean> {
   if (!config.regexPattern) throw new Error('regexPattern is required');
   const text = await grabText(config);
   const regex = new RegExp(config.regexPattern);
-  if (!regex.test(text)) return false;
-  if (config.matchedText && regex.exec(text)?.[0] != (config.matchedText))
+  const match: string | undefined = regex.exec(text)?.[0];
+
+  if (!match) return false; // Nothing matched
+
+  if (config.matchedText && match != config.matchedText)
     return false; // We're supposed to match certain text but we found something else
+
+  if (config.numericInequality)
+    return execInequality(config, match); // Match fails inequality check
+
   return true; 
 }
 

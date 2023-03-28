@@ -1,6 +1,8 @@
 import * as Joi from 'joi';
 
 export const defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36";
+export const ineqRegex = /([<>]=?)|=/;
+export const decimalRegex = /-?((\d+(,\d{3})*|\d+)(\.\d+)?)/;
 
 export const Config = Joi.object({
   url: Joi.string().uri().required(),
@@ -15,12 +17,14 @@ export const Config = Joi.object({
   plainText: Joi.string(),
   onlyVisibleText: Joi.bool(),
   negativeMatch: Joi.bool(),
-  numericInequality: Joi.string().regex(/^([<>]=?|=)(\d+(\.\d+)?)$/) // "<=10", ">10", etc
+  numericInequality: Joi.string().regex(new RegExp(`^(${ineqRegex.source})(${decimalRegex.source})$`)), // "<=10", ">10", etc
+  decimalComma: Joi.bool(),
 })
 .xor('regexPattern', 'cssQuerySelector', 'plainText') // Need one and only one match type
-.oxor('plainText', 'matchedText') // Plain text doesn't care about matched text & visa versa
+// Plain text, matched text, and numeric inequality are mutually exclusive matching conditions
+.oxor('plainText', 'matchedText', 'numericInequality')
 .oxor('onlyVisibleText', 'cssQuerySelector') // Query selector doesn't care about visibility & visa versa
-.oxor('matchedText', 'numericInequality') // Matched text doesn't care about numeric inequality & visa versa
+.with('decimalComma', 'numericInequality') // Decimal comma only applies to numeric inequality
 .required();
 
 export type Config = {
@@ -37,4 +41,5 @@ export type Config = {
   onlyVisibleText?: boolean;
   negativeMatch?: boolean;
   numericInequality?: string;
+  decimalComma?: boolean;
 }

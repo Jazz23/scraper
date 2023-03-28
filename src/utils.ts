@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { JSDOM } from 'jsdom';
-import { Config } from './config';
+import { Config, ineqRegex } from './config';
 
 function isVisible(dom: JSDOM, element: Element) {
     const style = dom.window.getComputedStyle(element);
@@ -57,4 +57,43 @@ export function divideString(str: string, delimeter: string): string {
     return str.substring(index + delimeter.length);
   }
   return str;
+}
+
+export function parseInequality(config: Config): [string, number] {
+  // Assuming str has already been validated
+  if (!config.numericInequality) throw new Error('Missing inequality');
+
+  const str = config.numericInequality;
+  const inequality = ineqRegex.exec(str)?.[0] as string;
+
+  const number = Number(str.substring(inequality.length).replace(",", ""));
+  return [inequality, number];
+}
+
+export function execInequality(config: Config, match: string | null): boolean {
+  if (!match) return false;
+  match = match.replace(/[^\d.,]/g, ''); // Remove all characters except numbers, commas, and decimal points.
+  let num = Number(match.replace(",", "")); // Normal 22,333.50
+  if (config.decimalComma) num = Number(match.replace(".", "").replace(",", ".")); // DecimalComma, 22.333,50
+
+  if (isNaN(num)) return false;
+  const [inequality, number] = parseInequality(config);
+  return compareNumbers(inequality, num, number);
+}
+
+function compareNumbers(inequality: string, a: number, b: number): boolean {
+  switch (inequality) {
+    case '<':
+      return a < b;
+    case '<=':
+      return a <= b;
+    case '>':
+      return a > b;
+    case '>=':
+      return a >= b;
+    case '=':
+      return a === b;
+    default:
+      return false;
+  }
 }
